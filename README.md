@@ -27,7 +27,7 @@
 		 Leave the logcat connection open, but queue up messages while you catch your breath, search StackOverflow, etc.
 		
 		Autoscroll that works... and Scroll Lock that works!
-		 Jerk-free scrolling withotu scroll lock constantly re-enabling itsself. (Looking at you, eclipse)
+		 Jerk-free scrolling without scroll lock constantly re-enabling itsself. (Looking at you, eclipse)
 		 Smooth scrolling and perfectly steady focus on a single message, even while earlier messages are being purged.
 		 No wrestling to scroll through window updats
 		
@@ -43,7 +43,9 @@
 		C#
 		 Easy street getting it open in VS2017 and jumping right in. No external deps. Except ADB.
 		 
-	Todo:
+	Todo / Limitations:
+		
+		Unfortunately I've had only 2 days to write this initial version so it'll need some love and attention going forward.
 		
 		- Copypasta
 		- Limit by Level (Assert/Debug/Warn/Info, etc)
