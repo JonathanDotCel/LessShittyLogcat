@@ -32,16 +32,22 @@
 				<ColumnDefinition x:Name="Filtered" Width="87*" />
 			</Grid.ColumnDefinitions>
 			<GridSplitter Grid.Column="2" HorizontalAlignment="Stretch" Margin="0" />
-			<ListView x:Name="listBox1" Grid.Column="1" HorizontalAlignment="Stretch" Height="Auto" Margin="0" VerticalAlignment="Stretch" Width="Auto" ScrollViewer.HorizontalScrollBarVisibility="Visible" RenderTransformOrigin="0,0" SizeChanged="ListViewSizeChanged" AlternationCount="2" >
+			<ListView x:Name="listBox1" Grid.Column="1" HorizontalAlignment="Stretch" Height="Auto" Margin="0" VerticalAlignment="Stretch" Width="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" RenderTransformOrigin="0,0" SizeChanged="ListViewSizeChanged" AlternationCount="2" >
 				<ListView.View>
 					<GridView>
 						<GridViewColumn Header="Level" DisplayMemberBinding="{Binding level}"/>
 						<GridViewColumn Header="Time" DisplayMemberBinding="{Binding time}" Width="120"/>
 						<GridViewColumn Header="PID" DisplayMemberBinding="{Binding PID}" Width="50"/>
-						<GridViewColumn Header="TID" DisplayMemberBinding="{Binding TID}" Width="50"/>
-						<!--<GridViewColumn Header="App" DisplayMemberBinding="{Binding app}" Width="50"/>-->
-						<GridViewColumn Header="Tag" DisplayMemberBinding="{Binding tag}" Width="150"/>
-						<GridViewColumn Header="Text" DisplayMemberBinding="{Binding text}" Width="Auto"/>
+						<GridViewColumn Header="TID" DisplayMemberBinding="{Binding TID}" Width="50"/>						
+						<GridViewColumn Header="Tag" DisplayMemberBinding="{Binding tag}" Width="150"/>						
+						<GridViewColumn Header="Text" Width="Auto" >
+							<GridViewColumn.CellTemplate>
+								<DataTemplate x:Name="henry">
+									<!--disabled for now-->
+									<TextBlock TextWrapping="NoWrap" Text="{Binding text}" />									
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
 					</GridView>
 				</ListView.View>
 
@@ -69,11 +75,19 @@
 						<GridViewColumn Header="Time" DisplayMemberBinding="{Binding time}" Width="120"/>
 						<GridViewColumn Header="PID" DisplayMemberBinding="{Binding PID}" Width="50"/>
 						<GridViewColumn Header="TID" DisplayMemberBinding="{Binding TID}" Width="50"/>
-						<!--<GridViewColumn Header="App" DisplayMemberBinding="{Binding app}" Width="50"/>-->
 						<GridViewColumn Header="Tag" DisplayMemberBinding="{Binding tag}" Width="150"/>
-						<GridViewColumn Header="Text" DisplayMemberBinding="{Binding text}" Width="Auto"/>
+						<!--<GridViewColumn Header="Text" DisplayMemberBinding="{Binding text}" Width="Auto" >-->
+						<GridViewColumn Header="Text" Width="Auto" >
+							<GridViewColumn.CellTemplate>
+								<DataTemplate>
+									<!--disabled for now-->
+									<TextBlock TextWrapping="NoWrap" Text="{Binding text}" />									
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
 					</GridView>
 				</ListView.View>
+
 				<ListView.ItemContainerStyle>
 					<Style TargetType="ListViewItem">
 						<Style.Triggers>
@@ -89,6 +103,8 @@
 						</Style.Triggers>
 					</Style>
 				</ListView.ItemContainerStyle>
+				
+
 			</ListView>
 			<Label Content="Inclusion Filters" HorizontalAlignment="Left" Margin="7,50,0,0" VerticalAlignment="Top" Width="133" FontSize="14"/>
 			<CheckBox x:Name="cbFilter1" HorizontalAlignment="Left" Margin="0,85,0,0" VerticalAlignment="Top" Click="UpdateFilters" Height="24" Width="140" RenderTransformOrigin="0.327,2.781" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Disabled" Padding="4,0,0,0">
@@ -114,6 +130,7 @@
 				<TextBox x:Name="txtExclude2" TextWrapping="Wrap" Text="unity" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Height="24"/>
 			</CheckBox>
 			<TextBlock x:Name="sub1_Copy" Text="Prefix with pid: tid: tag: text: to limit scope" TextWrapping="Wrap" Margin="5,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="40" Width="135" />
+			<Button Content="Button" HorizontalAlignment="Left" Height="29" Margin="27,373,0,0" VerticalAlignment="Top" Width="71" Click="Button_Click_1"/>
 		</Grid>
 		<CheckBox x:Name="cbScroll" Content="AutoScroll" Margin="296,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.416,0.596" Height="15" IsChecked="True" HorizontalAlignment="Left" Width="75"/>
 		<Button x:Name="btnDeviceClear" Content="Wipe logs on device" Margin="0,6,10,0" VerticalAlignment="Top" Click="BTNDeviceClear_Click" Height="20" HorizontalAlignment="Right" Width="124"/>

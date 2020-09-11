@@ -27,7 +27,7 @@ namespace LessShittyLogcat {
 	public enum FilterMode{ ANY, ALL }
 
 	
-	public class LogEntry{
+	public class LogEntry{		
 		public string level { get; set; }
 		public string time { get; set; }
 		public string PID { get; set; }
@@ -35,8 +35,10 @@ namespace LessShittyLogcat {
 		public string app { get; set; }		// not bound
 		public string tag { get; set; }
 		public string text {get; set;}
-		public string raw { get; set; }		// un-split text
+		public string unwrapped{ get; set; }	// text before wrapping, to allow resize
+		public string raw { get; set; }			// un-split text
 		public Brush Color { get; set; }
+		public string TextWrapping {get; set; } //__TEST__
 	}
 
 	public class FilterGroup{		
@@ -97,7 +99,7 @@ namespace LessShittyLogcat {
 		public double splitterLerp = 50;
 		public double gDelta => splitterTarg - splitterLerp;
 		public bool animating => Math.Abs(gDelta) > 2;
-
+		
 		// Pour la dispatcher
 		public delegate void GenericDelegate();
 		public delegate void UpdateDelegate(Process logcatProcess);
@@ -118,6 +120,8 @@ namespace LessShittyLogcat {
 		SolidColorBrush orangeBrush;
 		SolidColorBrush redBrush;
 		SolidColorBrush greenBrush;
+
+		
 
 		public MainWindow()
 		{
@@ -327,6 +331,7 @@ namespace LessShittyLogcat {
 				TID = tidString,
 				app = tagString, // not implemented
 				tag = tagString,
+				unwrapped = textString,
 				text = WrapString( textString ),
 				raw = rawString				
 			};
@@ -577,15 +582,20 @@ namespace LessShittyLogcat {
 		// Would be nice if WPF had chosen GridLength instead of "double" for GridViewColumn.Widths		
 		private void ListViewSizeChanged(object sender, SizeChangedEventArgs e)
 		{
+			
 			ListView lv = (ListView)sender;
+			if ( lv != listBox1 ) return;
 			GridView gv = (GridView)(lv.View);
-			// ty Gary Connell, Konraw Morawski for the scrollbar hint!
-			double listWidth = lv.ActualWidth - SystemParameters.VerticalScrollBarWidth;
+			// ty Gary Connell, Konrad Morawski for the scrollbar hint!
+			double listWidth = Math.Max( 0, lv.ActualWidth - SystemParameters.VerticalScrollBarWidth );
+			
 			double columnsWidth = 0;
 			for( int i = 0; i < gv.Columns.Count -1; i++ ){
-				columnsWidth -= gv.Columns[i].ActualWidth;
+				columnsWidth += gv.Columns[i].ActualWidth;
 			}
-			gv.Columns[ gv.Columns.Count-1 ].Width = listWidth - columnsWidth;
+			
+			gv.Columns[ gv.Columns.Count-1 ].Width = Math.Max( 2, listWidth - columnsWidth );
+
 		}
 		
 
@@ -684,7 +694,40 @@ namespace LessShittyLogcat {
 		private void TextBox_LostFocus(object sender, RoutedEventArgs e)
 		{
 			bufferSize = FinaliseTextbox( txtBufferSize, 100, 100000 );
+			int oldWrapLength = wrapLength;
 			wrapLength = FinaliseTextbox( txtWrapLength, 0, 0 );
+
+			// Update existing items?
+			if ( wrapLength != oldWrapLength ){
+				
+				foreach( LogEntry l in pendingLogs ) 
+					if ( !string.IsNullOrEmpty( l.unwrapped )  )
+						l.text = WrapString( l.unwrapped );
+				
+				foreach (LogEntry l in listBox1.Items)
+					if (!string.IsNullOrEmpty(l.unwrapped) )
+						l.text = WrapString(l.unwrapped);
+				listBox1.Items.Refresh();
+
+				foreach (LogEntry l in listBox2.Items)
+					if (!string.IsNullOrEmpty(l.unwrapped) )
+						l.text = WrapString(l.unwrapped);				
+				listBox2.Items.Refresh();
+
+			}
+
+		}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+
+		}
+
+
+
+		private void Button_Click_1(object sender, RoutedEventArgs e)
+		{
+			
 		}
 
 
