@@ -5,7 +5,8 @@
 # Less Shitty Logcat
 	
 	A lightweight, standalone ADB logcat viewer, using WPF
-	Especially useful for Unity development with many plugins and for e.g. Samsung devices with the once-per-frame log spam.
+	Especially useful for Unity development with many plugins and for 
+	(e.g.) Samsung devices with the once-per-frame log spam.
 		
 	github.com/JonathanDotCel
 		
@@ -24,12 +25,15 @@
 		 Takes effect before even hitting the filtered/unfiltered buffers. Tranquil.
 		
 		Pause
-		 Leave the logcat connection open, but queue up messages while you catch your breath, search StackOverflow, etc.
+		 Leave the logcat connection open, but queue up messages while you catch your breath, 
+		 search StackOverflow, etc.
 		
 		Autoscroll that works... and Scroll Lock that works!
-		 Jerk-free scrolling without scroll lock constantly re-enabling itsself. (Looking at you, eclipse)
-		 Smooth scrolling and perfectly steady focus on a single message, even while earlier messages are being purged.
-		 No wrestling to scroll through window updats
+		 Jerk-free scrolling without scroll lock constantly re-enabling itsself. 		 
+		 Smooth scrolling and perfectly steady focus on a single message, even while earlier 
+		 messages are being purged.		 
+		 And no wrestling to take control of the scroll bar.
+		 (Looking at you, eclipse)
 		
 		Log Grouping
 		 E.g. when a thread sends 2 or more messages with the same timestamp, like Unity stack traces.
@@ -45,7 +49,8 @@
 		 
 	Todo / Limitations:
 		
-		Unfortunately I've had only 2 days to write this initial version so it'll need some love and attention going forward.
+		Unfortunately I've had only 2 days to write this initial version so it'll need 
+		some love and attention going forward.
 		
 		- Copypasta
 		- Limit by Level (Assert/Debug/Warn/Info, etc)
