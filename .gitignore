@@ -1,0 +1,10 @@
+#IDE STUFF
+.idea
+.vs
+.vscode
+/bin/
+/obj/
+
+desktop.ini
+
+exclude_*
