@@ -20,12 +20,16 @@ using System.Threading;
 using System.Diagnostics;
 using System.Windows.Threading;
 using System.Linq;
+using System.Web;
 
 namespace LessShittyLogcat {
 	
 	// Can a message match any filter, or all?
 	public enum FilterMode{ ANY, ALL }
 
+	// Stretch the final column to the width of its content?
+	// or stretch the final column to the width of the parent Listview?
+	public enum ListViewResizeType{ TOCONTENT, TOPARENT };
 	
 	public class LogEntry{		
 		public string level { get; set; }
@@ -39,6 +43,14 @@ namespace LessShittyLogcat {
 		public string raw { get; set; }			// un-split text
 		public Brush Color { get; set; }
 		public string TextWrapping {get; set; } //__TEST__
+		public override string ToString()
+		{
+			if ( !string.IsNullOrEmpty( raw ) )
+				return raw;
+			if ( !string.IsNullOrEmpty( text ) )
+				return text;
+			return base.ToString();
+		}
 	}
 
 	public class FilterGroup{		
@@ -116,21 +128,21 @@ namespace LessShittyLogcat {
 
 		// These are thread-specific so let's cache them.
 		// (Used for listview foregrounds)
-		SolidColorBrush blackBrush;
+		SolidColorBrush blueBrush;
 		SolidColorBrush orangeBrush;
 		SolidColorBrush redBrush;
-		SolidColorBrush greenBrush;
+		SolidColorBrush blackBrush;
 
-		
+		public static bool finishedLoading = false;
 
 		public MainWindow()
 		{
 			InitializeComponent();
 
 			redBrush = new SolidColorBrush(Colors.DarkRed);
-			greenBrush = new SolidColorBrush(Colors.DarkGreen);
+			blackBrush = new SolidColorBrush(Colors.Black);
 			orangeBrush = new SolidColorBrush(Colors.DarkOrange);
-			blackBrush = new SolidColorBrush(Colors.DarkBlue);
+			blueBrush = new SolidColorBrush(Colors.DarkBlue);
 
 			// Could over engineer this for the sake of 6 lines.
 			// ... or type it out.
@@ -150,10 +162,13 @@ namespace LessShittyLogcat {
 			// to avoid a null PropertyChanged event
 			this.DataContext = this;
 
-			listBox1.Items.Add(new LogEntry() { time="Nowish", text = "Less Shitty Logcat is open source, MPL2.0 licensed. ", Color = blackBrush });
-			listBox1.Items.Add(new LogEntry() { time="Nowish", text = "See github.com/JonathanDotCel for more info! ", Color = blackBrush });
+			AddUnfiltered(new LogEntry() { time="Nowish", text = "Less Shitty Logcat is open source, MPL2.0 licensed. ", Color = blueBrush });
+			AddUnfiltered(new LogEntry() { time="Nowish", text = "See github.com/JonathanDotCel for more info! ", Color = blueBrush });
+
+			finishedLoading = true;
 
 		}
+
 
 		public void AddGroup(FilterGroup inGroup)
 		{
@@ -164,6 +179,20 @@ namespace LessShittyLogcat {
 				exclusionGroup.Add(inGroup);
 			else
 				inclusionGroup.Add(inGroup);
+		}
+
+		public LogEntry AddUnfiltered( LogEntry inEntry, bool refreshImmediately = true ){
+			listBox1.Items.Add( inEntry );
+			if ( refreshImmediately ) 
+				RefreshViews();
+			return inEntry;
+		}
+
+		public LogEntry AddFiltered( LogEntry inEntry, bool refreshImmediately = true ){
+			listBox2.Items.Add(inEntry);
+			if ( refreshImmediately )
+				RefreshViews();
+			return inEntry;
 		}
 
 		// MVVM would be a wee bit overkill here...
@@ -217,7 +246,7 @@ namespace LessShittyLogcat {
 				process.StartInfo.RedirectStandardError = true;
 				process.StartInfo.UseShellExecute = false;			
 				process.Start();
-				listBox1.Items.Add( new LogEntry(){ text = "Running adb with params: " + inParams, Color = blackBrush } );
+				AddUnfiltered( new LogEntry(){ text = "Running adb with params: " + inParams, Color = blueBrush } );
 				return process;
 			} catch( Exception ) {
 				MessageBox.Show( 
@@ -313,7 +342,10 @@ namespace LessShittyLogcat {
 			// Same timestamp as previous means it's a multipart log entry
 			// (Unity) So indent it.
 			if ( lastAdded != null ){				
-				if ( timeString == lastAdded.time && tagString == lastAdded.tag ){					
+				if ( timeString == lastAdded.time 
+					&& tagString == lastAdded.tag 
+					&& levelString == lastAdded.level
+				){					
 					sameTimestamp = true;
 				}
 			}
@@ -337,10 +369,10 @@ namespace LessShittyLogcat {
 			};
 
 			switch( levelString ){				
-				case "I" : l.Color = greenBrush; break;
+				case "I" : l.Color = blackBrush; break;
 				case "W": l.Color = orangeBrush; break;
 				case "E": l.Color = redBrush; break;
-				default: l.Color = blackBrush; break;
+				default: l.Color = blueBrush; break;
 			}
 
 			lastAdded = l;
@@ -350,7 +382,7 @@ namespace LessShittyLogcat {
 
 			cantParse:
 
-			LogEntry f = new LogEntry(){ text = rawString, Color = blackBrush };
+			LogEntry f = new LogEntry(){ text = rawString, Color = blueBrush };
 			pendingLogs.Add( f );
 
 		}
@@ -377,13 +409,13 @@ namespace LessShittyLogcat {
 					if (FilterMatches(exclusionGroup[1], l, false)) break;
 					
 					{
-						listBox1.Items.Add(l);
+						AddUnfiltered(l);
 						addedTo1++;						
 					}
 
 					if ( ValidEntry( l ) )
 					{
-						listBox2.Items.Add(l);
+						AddFiltered(l);
 						addedTo2++;						
 					}
 
@@ -396,19 +428,21 @@ namespace LessShittyLogcat {
 				}
 
 				Prune( listBox1 );
-				Scroll( listBox1, addedTo1 );
+				Prune(listBox2);
 
-				Prune( listBox2 );
-				Scroll( listBox2, addedTo2 );
+				if ( addedTo1 > 0 || addedTo2 > 0 )
+					RefreshViews();
+
+				Scroll(listBox1, addedTo1);
+				Scroll(listBox2, addedTo2);
 
 			}
 
 			if (lastProcess.HasExited && cbEnabled.IsChecked.GetValueOrDefault())
 			{
 				cbEnabled.IsChecked = false;
-				LogEntry l = new LogEntry(){ text = "ADB terminated with exit code " + inProcess?.ExitCode, Color = blackBrush };
-				listBox1.Items.Add( l );
-				listBox2.Items.Add( l );
+				LogEntry l = new LogEntry(){ text = "ADB terminated with exit code " + inProcess?.ExitCode, Color = blueBrush };
+				AddUnfiltered( l );				
 			}
 
 			if ( cbEnabled.IsChecked.GetValueOrDefault() ){
@@ -509,16 +543,9 @@ namespace LessShittyLogcat {
 
 			if ( howManyLines == 0 ) return;
 
-			if ( cbScroll.IsChecked.GetValueOrDefault() )
-			{
-				// The shit you have to deal with in WPF...
-				inBox.SelectedIndex = inBox.Items.Count - 1;
+			if ( cbScroll.IsChecked.GetValueOrDefault() ){
+							
 				GetScroll( inBox ).ScrollToBottom();
-
-				// Alternate method incase the hierarchy breaks at some point
-				// ( MoveCurrentToLast stuff is required )
-				//inBox.Items.MoveCurrentToLast();				
-				//inBox.ScrollIntoView( inBox.Items.CurrentItem );
 
 			} else {
 				
@@ -581,23 +608,34 @@ namespace LessShittyLogcat {
 
 		// Would be nice if WPF had chosen GridLength instead of "double" for GridViewColumn.Widths		
 		private void ListViewSizeChanged(object sender, SizeChangedEventArgs e)
-		{
-			
-			ListView lv = (ListView)sender;
-			if ( lv != listBox1 ) return;
-			GridView gv = (GridView)(lv.View);
-			// ty Gary Connell, Konrad Morawski for the scrollbar hint!
-			double listWidth = Math.Max( 0, lv.ActualWidth - SystemParameters.VerticalScrollBarWidth );
-			
-			double columnsWidth = 0;
-			for( int i = 0; i < gv.Columns.Count -1; i++ ){
-				columnsWidth += gv.Columns[i].ActualWidth;
-			}
-			
-			gv.Columns[ gv.Columns.Count-1 ].Width = Math.Max( 2, listWidth - columnsWidth );
-
+		{			
+			RefreshViews();
 		}
 		
+		private void ListViewScrolled( object sender, EventArgs  e ){
+			cbScroll.IsChecked = false;
+		}
+
+		// Turns the filter boxes off only when a change is detected
+		// saves filtering printable/nonprintable chars
+		private void Filterboxes_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			
+			// Called during init, crashy
+			if ( !finishedLoading ) return;
+
+			TextBox whichBox = (TextBox)sender;
+
+			// Still feels dirty using Linq for this...
+			FilterGroup f =
+				(from grp in allGroups
+				 where grp.textBox == whichBox
+				 select grp).FirstOrDefault();
+
+			f.checkBox.IsChecked = false;
+			UpdateFilters( null, null );
+			
+		}
 
 		// disable filter boxes while typing
 		// until the user hits Enter
@@ -605,7 +643,7 @@ namespace LessShittyLogcat {
 		{
 			TextBox whichBox = (TextBox)sender;
 			
-			// Still feels dirty using Linq for this...
+			// I know I just said this, but it feels dirty using linq for this.
 			FilterGroup f = 
 				( from grp in allGroups
 				where grp.textBox == whichBox
@@ -614,8 +652,10 @@ namespace LessShittyLogcat {
 			bool isEnter = e.Key == Key.Enter;
 			bool empty = string.IsNullOrEmpty(whichBox.Text);
 
-			f.checkBox.IsChecked = (isEnter && !empty);
-			UpdateFilters(null, null);
+			if ( isEnter && !empty ){
+				f.checkBox.IsChecked = true;
+				UpdateFilters( null, null );
+			}
 
 		}
 
@@ -684,7 +724,7 @@ namespace LessShittyLogcat {
 			IntegerLimit( txtBufferSize, 1000 );
 		}
 
-		// The user has pushed enter or left the text box, clamp and apply the value
+		// The user has pushed enter or left the numeric text box, clamp and apply the value
 		private void TextBox_KeyUp(object sender, KeyEventArgs e)
 		{
 			if ( e.Key == Key.Enter ) TextBox_LostFocus( sender, null );			
@@ -707,28 +747,148 @@ namespace LessShittyLogcat {
 				foreach (LogEntry l in listBox1.Items)
 					if (!string.IsNullOrEmpty(l.unwrapped) )
 						l.text = WrapString(l.unwrapped);
-				listBox1.Items.Refresh();
+				listBox1.Items.Refresh();	//update our newly-wrapped widths
 
 				foreach (LogEntry l in listBox2.Items)
 					if (!string.IsNullOrEmpty(l.unwrapped) )
 						l.text = WrapString(l.unwrapped);				
 				listBox2.Items.Refresh();
 
+				RefreshViews();
+
+				// Force scroll to current position to bring back into view
+				Console.WriteLine( "Re focusing on selection..." );
+				Scroll( listBox1, 0 );
+				Scroll( listBox2, 0 );
+
 			}
 
 		}
 
-		private void Button_Click(object sender, RoutedEventArgs e)
-		{
+		// Refresh a listview when
+		// A: the panel or window has resized
+		// B: a new item has been added
+		private void RefreshViews(){
+			RefreshListView( listBox1, wrapLength == 0 ? ListViewResizeType.TOCONTENT : ListViewResizeType.TOPARENT );
+			RefreshListView( listBox2, wrapLength == 0 ? ListViewResizeType.TOCONTENT : ListViewResizeType.TOPARENT );			
+		}
+
+		private void RefreshListView( ListView inLV, ListViewResizeType resizeType ){
+			
+			// Fill the final column up to the size of the ListView control
+			if ( resizeType == ListViewResizeType.TOPARENT ){
+				
+				GridView gv = (GridView)(inLV.View);
+				// ty Gary Connell, Konrad Morawski for the scrollbar hint!
+				double barWidth = SystemParameters.VerticalScrollBarWidth * 2; // few extra pxs
+				double listWidth = Math.Max(0, inLV.ActualWidth - barWidth);
+
+				double columnsWidth = 0;
+				for (int i = 0; i < gv.Columns.Count - 1; i++)
+				{
+					columnsWidth += gv.Columns[i].ActualWidth;
+				}
+
+				gv.Columns[gv.Columns.Count - 1].Width = Math.Max(2, listWidth - columnsWidth);
+
+			}
+
+			if ( resizeType == ListViewResizeType.TOCONTENT ){
+				
+				GridView gv = (GridView)inLV.View;
+
+				// toggle it to an actual value and toggle it back
+				// thanks Dr WPF on MSDN for this gem.
+
+				gv.Columns[gv.Columns.Count - 1].Width = gv.Columns[gv.Columns.Count - 1].ActualWidth;
+				gv.Columns[gv.Columns.Count - 1].Width = double.NaN;
+
+			}
+
 
 		}
 
+		private void cbScroll_Checked(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine( "Scrolling back to the bottom" );
+			Scroll( listBox1, listBox1.Items.Count );
+			Scroll( listBox2, listBox2.Items.Count);
+		}
 
-
-		private void Button_Click_1(object sender, RoutedEventArgs e)
+		// 110% overkill setting up instanced routed commands, etc for this.
+		// Basically, it's this or a separate class with function declarations and relentless busywork
+		private void MenuItem_Click(object sender, RoutedEventArgs e)
 		{
 			
+			MenuItem m = (MenuItem)sender;
+			string command = (string)m.Tag;
+			ListView source = ((ContextMenu)m.Parent).PlacementTarget as ListView; // lol
+
+			Console.WriteLine( "Command " + command + " from " + source );
+
+			switch( command ){
+				
+				case "copy": CopyFrom( source ); break;
+				case "stack": SearchOnline(source); break;
+				case "google": SearchOnline(source, true); break;
+
+			}
+			
 		}
+
+		public void CopyFrom( ListView whichView ){
+			
+			string copystring = "";
+			for ( int i = 0; i < whichView.SelectedItems.Count; i++ ){
+				copystring += whichView.SelectedItems[i] + "\r\n";  //CR/LF for notepad
+			}
+
+			Console.WriteLine( "copystring: " + copystring );
+			Clipboard.SetData( DataFormats.Text, copystring );
+
+		}
+
+		public void SearchOnline( ListView whichView, bool useGoogle = false ){
+			
+			string searchString = "";
+			for (int i = 0; i < whichView.SelectedItems.Count; i++)
+			{
+				if ( whichView.SelectedItems[i] is LogEntry ){
+					LogEntry l = (LogEntry)whichView.SelectedItems[i];
+					if ( !string.IsNullOrEmpty( l.text ) )
+						searchString += l.text;
+				}
+			}
+			
+			if ( useGoogle ){
+				Process.Start("http://www.google.com/search?q=" + System.Uri.EscapeDataString( searchString ) );
+			} else {
+				Process.Start("http://stackoverflow.com/search?q=" + System.Uri.EscapeDataString(searchString));
+			}
+
+		}
+
+		private void Listbox_KeyUp(object sender, KeyEventArgs e)
+		{
+			
+			bool ctrlHeld = (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
+
+			if ( e.Key == Key.C && ctrlHeld ){
+				CopyFrom( (ListView)sender );		
+			}
+
+			if (e.Key == Key.G && ctrlHeld)
+			{
+				SearchOnline( (ListView)sender, true );
+			}
+
+			if (e.Key == Key.T && ctrlHeld)
+			{
+				SearchOnline((ListView)sender, false);
+			}
+
+		}
+
 
 
 	}

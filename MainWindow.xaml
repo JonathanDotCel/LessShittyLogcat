@@ -15,9 +15,9 @@
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
-		<CheckBox x:Name="cbEnabled" Content="Enabled?" RenderTransformOrigin="0.484,2.067" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="108,9,0,0" Height="15" Click="CBEnabled_Clicked" Width="68"/>
-		<CheckBox x:Name="cbPaused" Content="Paused" Margin="203,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.779,1.457" Height="15" HorizontalAlignment="Left" Width="58"/>
-		<Button x:Name="btnClear" Content="Clear" Margin="9,6,0,0" VerticalAlignment="Top" Click="BTNClear_Click" Height="20" HorizontalAlignment="Left" Width="75"/>
+		<CheckBox x:Name="cbEnabled" Content="Enabled?" RenderTransformOrigin="0.484,2.067" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="108,9,0,0" Height="15" Click="CBEnabled_Clicked" Width="68" TabIndex="12"/>
+		<CheckBox x:Name="cbPaused" Content="Paused" Margin="203,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.779,1.457" Height="15" HorizontalAlignment="Left" Width="58" TabIndex="13"/>
+		<Button x:Name="btnClear" Content="Clear" Margin="9,6,0,0" VerticalAlignment="Top" Click="BTNClear_Click" Height="20" HorizontalAlignment="Left" Width="75" TabIndex="19"/>
 		<Grid HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="1" VerticalAlignment="Top" Height="0" Width="0">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition/>
@@ -32,43 +32,14 @@
 				<ColumnDefinition x:Name="Filtered" Width="87*" />
 			</Grid.ColumnDefinitions>
 			<GridSplitter Grid.Column="2" HorizontalAlignment="Stretch" Margin="0" />
-			<ListView x:Name="listBox1" Grid.Column="1" HorizontalAlignment="Stretch" Height="Auto" Margin="0" VerticalAlignment="Stretch" Width="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled" RenderTransformOrigin="0,0" SizeChanged="ListViewSizeChanged" AlternationCount="2" >
-				<ListView.View>
-					<GridView>
-						<GridViewColumn Header="Level" DisplayMemberBinding="{Binding level}"/>
-						<GridViewColumn Header="Time" DisplayMemberBinding="{Binding time}" Width="120"/>
-						<GridViewColumn Header="PID" DisplayMemberBinding="{Binding PID}" Width="50"/>
-						<GridViewColumn Header="TID" DisplayMemberBinding="{Binding TID}" Width="50"/>						
-						<GridViewColumn Header="Tag" DisplayMemberBinding="{Binding tag}" Width="150"/>						
-						<GridViewColumn Header="Text" Width="Auto" >
-							<GridViewColumn.CellTemplate>
-								<DataTemplate x:Name="henry">
-									<!--disabled for now-->
-									<TextBlock TextWrapping="NoWrap" Text="{Binding text}" />									
-								</DataTemplate>
-							</GridViewColumn.CellTemplate>
-						</GridViewColumn>
-					</GridView>
-				</ListView.View>
-
-				<ListView.ItemContainerStyle>
-					<Style TargetType="ListViewItem">
-						<Style.Triggers>
-							<Trigger Property="ItemsControl.AlternationIndex"  Value="0">
-								<Setter Property="Foreground" Value="{Binding Path=Color}" />
-								<!--<Setter Property="FontWeight"  Value="Bold" />-->
-							</Trigger>
-							<Trigger Property="ItemsControl.AlternationIndex"  Value="1">
-								<Setter Property="Foreground" Value="{Binding Path=Color}" />
-								<Setter Property="Opacity"  Value="0.8" />
-								<!--<Setter Property="FontWeight"  Value="Bold" />-->
-							</Trigger>
-						</Style.Triggers>
-					</Style>
-				</ListView.ItemContainerStyle>
-
-			</ListView>
-			<ListView x:Name="listBox2" Grid.Column="3" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" Width="Auto" ScrollViewer.HorizontalScrollBarVisibility="Visible" Background="#FFFFC4C4" SizeChanged="ListViewSizeChanged">
+			<ListView x:Name="listBox1" Grid.Column="1" HorizontalAlignment="Stretch" Height="Auto" Margin="0" VerticalAlignment="Stretch" Width="Auto" ScrollViewer.HorizontalScrollBarVisibility="Visible" RenderTransformOrigin="0,0" SizeChanged="ListViewSizeChanged" AlternationCount="2" ScrollBar.Scroll="ListViewScrolled" PreviewMouseWheel="ListViewScrolled" >
+				<ListView.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Copy (Ctrl+C)" Click="MenuItem_Click" Tag="copy" />
+						<MenuItem Header="Stack Google (Ctrl+G)" Click="MenuItem_Click" Tag="google"  />
+						<MenuItem Header="Stack Overflow (Ctrl+T)" Click="MenuItem_Click" Tag="stack"  />
+					</ContextMenu>
+				</ListView.ContextMenu>
 				<ListView.View>
 					<GridView>
 						<GridViewColumn Header="Level" DisplayMemberBinding="{Binding level}"/>
@@ -76,12 +47,49 @@
 						<GridViewColumn Header="PID" DisplayMemberBinding="{Binding PID}" Width="50"/>
 						<GridViewColumn Header="TID" DisplayMemberBinding="{Binding TID}" Width="50"/>
 						<GridViewColumn Header="Tag" DisplayMemberBinding="{Binding tag}" Width="150"/>
-						<!--<GridViewColumn Header="Text" DisplayMemberBinding="{Binding text}" Width="Auto" >-->
+						<GridViewColumn Header="Text" DisplayMemberBinding="{Binding text}" Width="Auto"  >
+
+						</GridViewColumn>
+					</GridView>
+				</ListView.View>
+
+				<ListView.ItemContainerStyle>
+					<Style TargetType="ListViewItem">
+						<Style.Triggers>
+							<Trigger Property="ItemsControl.AlternationIndex"  Value="0">
+								<Setter Property="Foreground" Value="{Binding Path=Color}" />
+								<!--<Setter Property="FontWeight"  Value="Bold" />-->
+							</Trigger>
+							<Trigger Property="ItemsControl.AlternationIndex"  Value="1">
+								<Setter Property="Foreground" Value="{Binding Path=Color}" />
+								<Setter Property="Opacity"  Value="0.8" />
+								<!--<Setter Property="FontWeight"  Value="Bold" />-->
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</ListView.ItemContainerStyle>
+
+			</ListView>
+			<ListView x:Name="listBox2" Grid.Column="3" HorizontalAlignment="Stretch" Margin="0" VerticalAlignment="Stretch" Width="Auto" ScrollViewer.HorizontalScrollBarVisibility="Visible" Background="#FFFFC4C4" SizeChanged="ListViewSizeChanged" ScrollBar.Scroll="ListViewScrolled" PreviewMouseWheel="ListViewScrolled" >
+				<ListView.ContextMenu>
+					<ContextMenu>
+						<MenuItem Header="Copy (Ctrl+C)" Click="MenuItem_Click"  Tag="copy" />
+						<MenuItem Header="Stack Google (Ctrl+G)" Click="MenuItem_Click" Tag="google"  />
+						<MenuItem Header="Stack Overflow (Ctrl+T)" Click="MenuItem_Click" Tag="stack"  />
+					</ContextMenu>
+				</ListView.ContextMenu>
+				<ListView.View>
+					<GridView>
+						<GridViewColumn Header="Level" DisplayMemberBinding="{Binding level}"/>
+						<GridViewColumn Header="Time" DisplayMemberBinding="{Binding time}" Width="120"/>
+						<GridViewColumn Header="PID" DisplayMemberBinding="{Binding PID}" Width="50"/>
+						<GridViewColumn Header="TID" DisplayMemberBinding="{Binding TID}" Width="50"/>
+						<GridViewColumn Header="Tag" DisplayMemberBinding="{Binding tag}" Width="150"/>
 						<GridViewColumn Header="Text" Width="Auto" >
 							<GridViewColumn.CellTemplate>
-								<DataTemplate>
+								<DataTemplate x:Name="henry">
 									<!--disabled for now-->
-									<TextBlock TextWrapping="NoWrap" Text="{Binding text}" />									
+									<TextBlock TextWrapping="NoWrap" Text="{Binding text}" />
 								</DataTemplate>
 							</GridViewColumn.CellTemplate>
 						</GridViewColumn>
@@ -103,43 +111,35 @@
 						</Style.Triggers>
 					</Style>
 				</ListView.ItemContainerStyle>
-				
 
 			</ListView>
 			<Label Content="Inclusion Filters" HorizontalAlignment="Left" Margin="7,50,0,0" VerticalAlignment="Top" Width="133" FontSize="14"/>
-			<CheckBox x:Name="cbFilter1" HorizontalAlignment="Left" Margin="0,85,0,0" VerticalAlignment="Top" Click="UpdateFilters" Height="24" Width="140" RenderTransformOrigin="0.327,2.781" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Disabled" Padding="4,0,0,0">
-				<TextBox x:Name="txtFilter1" TextWrapping="Wrap" Text="unity" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Height="23"/>
-			</CheckBox>
-			<CheckBox x:Name="cbFilter2" HorizontalAlignment="Left" Margin="0.333,120,0,0" VerticalAlignment="Top" Height="24" Width="140" RenderTransformOrigin="0.339,2.154" Click="UpdateFilters" Padding="4,0,0,0" UseLayoutRounding="False">
-				<TextBox x:Name="txtFilter2" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="ads" VerticalAlignment="Top" Width="120" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
-			</CheckBox>
-			<CheckBox x:Name="cbFilter3" HorizontalAlignment="Left" Margin="0,154,0,0" VerticalAlignment="Top" Height="24" Width="140" Click="UpdateFilters" Padding="4,0,0,0">
-				<TextBox x:Name="txtFilter3" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="IAB" VerticalAlignment="Top" Width="120" KeyUp="txtFilter_KeyUp"/>
-			</CheckBox>
-			<CheckBox HorizontalAlignment="Left" Margin="0,221,0,0" VerticalAlignment="Top" Width="140" Click="CheckBox_Click" Height="24" Padding="4,0,0,0">
+			<CheckBox x:Name="cbFilter1" HorizontalAlignment="Left" Margin="0,85,0,0" VerticalAlignment="Top" Click="UpdateFilters" Height="24" Width="20" RenderTransformOrigin="0.327,2.781" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Disabled" Padding="4,0,0,0" TabIndex="0"/>
+			<CheckBox x:Name="cbFilter2" HorizontalAlignment="Left" Margin="0.333,120,0,0" VerticalAlignment="Top" Height="24" Width="19.667" RenderTransformOrigin="0.339,2.154" Click="UpdateFilters" Padding="4,0,0,0" UseLayoutRounding="False" TabIndex="2"/>
+			<CheckBox x:Name="cbFilter3" HorizontalAlignment="Left" Margin="0,154,0,0" VerticalAlignment="Top" Height="24" Width="20" Click="UpdateFilters" Padding="4,0,0,0" TabIndex="4"/>
+			<CheckBox HorizontalAlignment="Left" Margin="0,221,0,0" VerticalAlignment="Top" Width="140" Click="CheckBox_Click" Height="24" Padding="4,0,0,0" TabIndex="8">
 				<TextBlock x:Name="sub1" Text="Require all enabled?" TextWrapping="Wrap" />
 			</CheckBox>
 			<Label Content="Exclusion Filters" HorizontalAlignment="Left" Margin="7,248,0,0" VerticalAlignment="Top" Width="133" FontSize="14"/>
-			<CheckBox x:Name="cbFilter4" Margin="0,188,10,0" VerticalAlignment="Top" Height="24" Width="140" Click="UpdateFilters" Padding="4,0,0,0">
-				<TextBox x:Name="txtFilter4" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="firebase" VerticalAlignment="Top" Width="120" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
-			</CheckBox>
-			<CheckBox x:Name="cbExclude1" HorizontalAlignment="Left" Margin="0,285,0,0" VerticalAlignment="Top" Click="UpdateFilters" Height="24" Width="140" RenderTransformOrigin="0.327,2.781" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Disabled" Padding="4,0,0,0">
-				<TextBox x:Name="txtExclude1" TextWrapping="Wrap" Text="[SurfaceView]" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Height="24"/>
-			</CheckBox>
-			<CheckBox x:Name="cbExclude2" HorizontalAlignment="Left" Margin="0,321,0,0" VerticalAlignment="Top" Click="UpdateFilters" Height="24" Width="140" RenderTransformOrigin="0.327,2.781" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Disabled" Padding="4,0,0,0">
-				<TextBox x:Name="txtExclude2" TextWrapping="Wrap" Text="unity" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Height="24"/>
-			</CheckBox>
+			<CheckBox x:Name="cbFilter4" Margin="0,188,135,0" VerticalAlignment="Top" Height="24" Click="UpdateFilters" Padding="4,0,0,0" TabIndex="6"/>
+			<CheckBox x:Name="cbExclude1" HorizontalAlignment="Left" Margin="0,285,0,0" VerticalAlignment="Top" Click="UpdateFilters" Height="24" Width="20" RenderTransformOrigin="0.327,2.781" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Disabled" Padding="4,0,0,0" TabIndex="9"/>
+			<CheckBox x:Name="cbExclude2" HorizontalAlignment="Left" Margin="0,321,0,0" VerticalAlignment="Top" Click="UpdateFilters" Height="24" Width="20" RenderTransformOrigin="0.327,2.781" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Disabled" Padding="4,0,0,0" TabIndex="10"/>
 			<TextBlock x:Name="sub1_Copy" Text="Prefix with pid: tid: tag: text: to limit scope" TextWrapping="Wrap" Margin="5,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="40" Width="135" />
-			<Button Content="Button" HorizontalAlignment="Left" Height="29" Margin="27,373,0,0" VerticalAlignment="Top" Width="71" Click="Button_Click_1"/>
+			<TextBox x:Name="txtFilter4" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="firebase" VerticalAlignment="Top" Width="120" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,188,0,0" TabIndex="7" TextChanged="Filterboxes_TextChanged"/>
+			<TextBox x:Name="txtFilter3" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="IAB" VerticalAlignment="Top" Width="120" KeyUp="txtFilter_KeyUp" Margin="20,154,0,0" TabIndex="5" TextChanged="Filterboxes_TextChanged"/>
+			<TextBox x:Name="txtFilter2" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" Text="ads" VerticalAlignment="Top" Width="120" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,120,0,0" TabIndex="3" TextChanged="Filterboxes_TextChanged"/>
+			<TextBox x:Name="txtFilter1" TextWrapping="Wrap" Text="unity" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,86,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Height="24" TabIndex="1" TextChanged="Filterboxes_TextChanged" />
+			<TextBox x:Name="txtExclude1" TextWrapping="Wrap" Text="[SurfaceView]" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,285,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Height="24" TabIndex="10" TextChanged="Filterboxes_TextChanged"/>
+			<TextBox x:Name="txtExclude2" TextWrapping="Wrap" Text="unity" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,321,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Height="24" TabIndex="11" TextChanged="Filterboxes_TextChanged"/>
 		</Grid>
-		<CheckBox x:Name="cbScroll" Content="AutoScroll" Margin="296,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.416,0.596" Height="15" IsChecked="True" HorizontalAlignment="Left" Width="75"/>
+		<CheckBox x:Name="cbScroll" Content="AutoScroll" Margin="296,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.416,0.596" Height="15" IsChecked="True" HorizontalAlignment="Left" Width="75" Checked="cbScroll_Checked" TabIndex="14"/>
 		<Button x:Name="btnDeviceClear" Content="Wipe logs on device" Margin="0,6,10,0" VerticalAlignment="Top" Click="BTNDeviceClear_Click" Height="20" HorizontalAlignment="Right" Width="124"/>
 		<Label x:Name="lblBuffer" Content="Unfiltered buffer: 0, Filtered buffer: 0" HorizontalAlignment="Right" Margin="0,0,171,4" Grid.Row="1" VerticalAlignment="Bottom" Width="397" FlowDirection="RightToLeft" Height="26" Grid.RowSpan="2"/>
-		<CheckBox x:Name="cbSplitView" Content="Split View" Margin="410,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.416,0.596" Height="15" Click="UpdateFilters" HorizontalAlignment="Left" Width="72"/>
+		<CheckBox x:Name="cbSplitView" Content="Split View" Margin="410,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.416,0.596" Height="15" Click="UpdateFilters" HorizontalAlignment="Left" Width="72" TabIndex="15"/>
 		<!-- <TextBox x:Name="namedBox" HorizontalAlignment="Left" Height="23" Margin="608,10,0,0" TextWrapping="Wrap" Text="{Binding wrapBinding, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120" PreviewTextInput="TextBox_PreviewTextInput" /> -->
-		<TextBox x:Name="txtWrapLength" HorizontalAlignment="Left" Height="23" Margin="591,6,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="73" TextChanged="TextBox_Changed" KeyUp="TextBox_KeyUp" LostFocus="TextBox_LostFocus" />
+		<TextBox x:Name="txtWrapLength" HorizontalAlignment="Left" Height="23" Margin="591,6,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="73" TextChanged="TextBox_Changed" KeyUp="TextBox_KeyUp" LostFocus="TextBox_LostFocus" TabIndex="16"/>
 		<Label Content="Text wrap?" HorizontalAlignment="Left" Margin="520,2,0,0" VerticalAlignment="Top" Height="25" Width="66"/>
-		<TextBox x:Name="txtBufferSize" Height="23" Margin="0,0,4,4" TextWrapping="Wrap" Text="1000" VerticalAlignment="Bottom" TextChanged="TextBox_Changed" Grid.Row="2" KeyUp="TextBox_KeyUp" LostFocus="TextBox_LostFocus" HorizontalAlignment="Right" Width="81" />
+		<TextBox x:Name="txtBufferSize" Height="23" Margin="0,0,4,4" TextWrapping="Wrap" Text="1000" VerticalAlignment="Bottom" TextChanged="TextBox_Changed" Grid.Row="2" KeyUp="TextBox_KeyUp" LostFocus="TextBox_LostFocus" HorizontalAlignment="Right" Width="81" TabIndex="17" />
 		<Label Content="Bufffer Size" Margin="0,0,90,4" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Height="26" Width="70" Grid.RowSpan="2"/>
 
 	</Grid>
