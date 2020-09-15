@@ -73,6 +73,7 @@ namespace LessShittyLogcat {
 		//public event PropertyChangedEventHandler PropertyChanged;
 		
 		const int MAX_FILTERS = 4;
+		const string MULTI_SEPARATOR = " || ";
 
 		public List<FilterGroup> inclusionGroup = new List<FilterGroup>();
 		public List<FilterGroup> exclusionGroup = new List<FilterGroup>();
@@ -120,7 +121,12 @@ namespace LessShittyLogcat {
 		Process lastProcess;
 
 		// For comparing timestamps / tags and grouping
+		// Can't read out of the "pending" buffer
+		// as that could be interrupted at any point
+		// 2 lines requred as unity sometimes throws in
+		// a blank line
 		LogEntry lastAdded;
+		LogEntry secondLastAdded;
 
 		// the integer-based checkboxes
 		int wrapLength = 0;		
@@ -344,16 +350,25 @@ namespace LessShittyLogcat {
 			if ( lastAdded != null ){				
 				if ( timeString == lastAdded.time 
 					&& tagString == lastAdded.tag 
-					&& levelString == lastAdded.level
+					&& levelString == lastAdded.level					
 				){					
 					sameTimestamp = true;
+				}
+			}
+
+			// Exception: E.g. if 2x unity multipart messages arrive with the same timestamp
+			// this unglues them
+			if ( secondLastAdded != null ){
+				if ( secondLastAdded.tag.IndexOf( "Unity" ) >= 0 ){					
+					if ( secondLastAdded.text.IndexOf( MULTI_SEPARATOR + "(Filename" ) >= 0 )
+						sameTimestamp = false;
 				}
 			}
 
 			int textStart = tagSplit + 2;			
 			int textSplit = rawString.Length;
 			if ( textSplit == -1 ) goto cantParse;
-			string textString =  (sameTimestamp ? " || " : "" ) +  rawString.Substring(textStart, textSplit - textStart);
+			string textString =  (sameTimestamp ? MULTI_SEPARATOR : "" ) +  rawString.Substring(textStart, textSplit - textStart);
 			
 			LogEntry l = new LogEntry()
 			{
@@ -375,6 +390,7 @@ namespace LessShittyLogcat {
 				default: l.Color = blueBrush; break;
 			}
 
+			secondLastAdded = lastAdded;
 			lastAdded = l;
 			pendingLogs.Add(l);
 
@@ -409,13 +425,13 @@ namespace LessShittyLogcat {
 					if (FilterMatches(exclusionGroup[1], l, false)) break;
 					
 					{
-						AddUnfiltered(l);
+						AddUnfiltered( l, false );
 						addedTo1++;						
 					}
 
 					if ( ValidEntry( l ) )
 					{
-						AddFiltered(l);
+						AddFiltered( l, false );
 						addedTo2++;						
 					}
 
@@ -428,7 +444,7 @@ namespace LessShittyLogcat {
 				}
 
 				Prune( listBox1 );
-				Prune(listBox2);
+				Prune( listBox2 );
 
 				if ( addedTo1 > 0 || addedTo2 > 0 )
 					RefreshViews();
