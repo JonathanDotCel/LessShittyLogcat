@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Windows.Threading;
 using System.Linq;
 using System.Web;
+using System.Text;
 
 namespace LessShittyLogcat {
 	
@@ -847,6 +848,7 @@ namespace LessShittyLogcat {
 				case "copy": CopyFrom( source ); break;
 				case "stack": SearchOnline(source); break;
 				case "google": SearchOnline(source, true); break;
+				case "save" : SaveContents( source ); break;
 
 			}
 			
@@ -884,6 +886,24 @@ namespace LessShittyLogcat {
 
 		}
 
+		public void SaveContents( ListView inView ){
+
+			// Feel free to add your own flavour of native file dialogue because "Native File Dialog", wxWidgets, etc is out of the question.
+
+			Microsoft.Win32.SaveFileDialog sfd = new Microsoft.Win32.SaveFileDialog();
+			if (sfd.ShowDialog().GetValueOrDefault())
+			{
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < inView.Items.Count; i++)
+				{
+					sb.Append(((LogEntry)inView.Items[i]).raw);
+					sb.Append( "\r\n" );
+				}
+				System.IO.File.WriteAllText(sfd.FileName, sb.ToString());
+			}
+
+		}
+
 		private void Listbox_KeyUp(object sender, KeyEventArgs e)
 		{
 			
@@ -901,6 +921,10 @@ namespace LessShittyLogcat {
 			if (e.Key == Key.T && ctrlHeld)
 			{
 				SearchOnline((ListView)sender, false);
+			}
+
+			if ( e.Key == Key.S && ctrlHeld ){
+				SaveContents( (ListView)sender );
 			}
 
 		}

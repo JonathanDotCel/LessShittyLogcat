@@ -38,6 +38,7 @@
 						<MenuItem Header="Copy (Ctrl+C)" Click="MenuItem_Click" Tag="copy" />
 						<MenuItem Header="Stack Google (Ctrl+G)" Click="MenuItem_Click" Tag="google"  />
 						<MenuItem Header="Stack Overflow (Ctrl+T)" Click="MenuItem_Click" Tag="stack"  />
+						<MenuItem Header="Save (Ctrl+S)" Click="MenuItem_Click" Tag="save"  />
 					</ContextMenu>
 				</ListView.ContextMenu>
 				<ListView.View>
@@ -76,6 +77,7 @@
 						<MenuItem Header="Copy (Ctrl+C)" Click="MenuItem_Click"  Tag="copy" />
 						<MenuItem Header="Stack Google (Ctrl+G)" Click="MenuItem_Click" Tag="google"  />
 						<MenuItem Header="Stack Overflow (Ctrl+T)" Click="MenuItem_Click" Tag="stack"  />
+						<MenuItem Header="Save (Ctrl+S)" Click="MenuItem_Click" Tag="save"  />
 					</ContextMenu>
 				</ListView.ContextMenu>
 				<ListView.View>
