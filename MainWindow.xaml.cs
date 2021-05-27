@@ -31,6 +31,18 @@ namespace LessShittyLogcat {
 	// Stretch the final column to the width of its content?
 	// or stretch the final column to the width of the parent Listview?
 	public enum ListViewResizeType{ TOCONTENT, TOPARENT };
+
+    [Flags]
+    public enum LevelFilterMode
+    {
+        None = 0,
+        Info = 1,
+        Warning = 2,
+        Debug = 4,
+        Error = 8,
+        Assert = 16,
+        Verbose = Info | Warning | Debug | Error | Assert
+    }
 	
 	public class LogEntry{		
 		public string level { get; set; }
@@ -80,6 +92,9 @@ namespace LessShittyLogcat {
 		public List<FilterGroup> exclusionGroup = new List<FilterGroup>();
 		public List<FilterGroup> allGroups = new List<FilterGroup>();  // inclusiongroup + exclusiongroup
 
+        public LevelFilterMode levelFilter = LevelFilterMode.Info | LevelFilterMode.Debug | LevelFilterMode.Warning |
+                                             LevelFilterMode.Error | LevelFilterMode.Assert;
+
 		private bool FilterEnabled( int which ){ return inclusionGroup[which].isEnabled; }
 		private string FilterAt( int which ){ return inclusionGroup[which].text; }
 
@@ -88,15 +103,22 @@ namespace LessShittyLogcat {
 
 		// Cache the value to cut down on per-line checks
 		private bool _anyFilterEnabled = false;
-		private bool anyFilterEnabled{get{
-			for (int i = 0; i < MAX_FILTERS; i++){
-					if (FilterEnabled(i) && !string.IsNullOrEmpty( FilterAt(i) ))
-					{
-						_anyFilterEnabled = true;
-						return true;
-					}
-				}
-				_anyFilterEnabled = false;
+		private bool anyFilterEnabled{
+            get {
+			    for (int i = 0; i < MAX_FILTERS; i++){
+				    if (FilterEnabled(i) && !string.IsNullOrEmpty( FilterAt(i) ))
+				    {
+					    _anyFilterEnabled = true;
+					    return true;
+				    }
+			    }
+
+                if (levelFilter != LevelFilterMode.Verbose)
+                {
+                    _anyFilterEnabled = true;
+                    return true;
+                }
+			    _anyFilterEnabled = false;
 				return false;
 			}
 		}
@@ -479,8 +501,10 @@ namespace LessShittyLogcat {
 			// Don't go into filtered if there's nothing filtered
 			if ( !_anyFilterEnabled ) return false;
 
-			
-			if ( filterMode == FilterMode.ALL ){
+            if (!CheckLogLevel(inEntry))
+                return false;
+
+            if ( filterMode == FilterMode.ALL ){
 				// Simpler to unroll this while we just use 4 filters
 				return ( 
 					FilterMatches( inclusionGroup[0], inEntry, true )
@@ -496,17 +520,19 @@ namespace LessShittyLogcat {
 				if (FilterMatches( inclusionGroup[1], inEntry )) return true;				
 				if (FilterMatches( inclusionGroup[2], inEntry )) return true;
 				if (FilterMatches( inclusionGroup[3], inEntry )) return true;
-				return false;
 			}
+
+            if (levelFilter != LevelFilterMode.Verbose)
+                return true;
 			
 			return false;
 
 		}
 
-		// Checks a given log entry against the Inclusion filters or the Exclusion filters
-		// FilterMode.ANY: return false if unchecked
-		// FilterMode.ALL: return true if unchecked
-		bool FilterMatches( FilterGroup inGroup, LogEntry inEntry, bool uncheckedReturnValue = false ){
+        // Checks a given log entry against the Inclusion filters or the Exclusion filters
+        // FilterMode.ANY: return false if unchecked
+        // FilterMode.ALL: return true if unchecked
+        bool FilterMatches( FilterGroup inGroup, LogEntry inEntry, bool uncheckedReturnValue = false ){
 			
 			// this filter isn't active, so it's not blocking anything
 			if ( !inGroup.isEnabled ) return uncheckedReturnValue;
@@ -553,10 +579,34 @@ namespace LessShittyLogcat {
 			
 		}
 
+        private bool CheckLogLevel(LogEntry inEntry)
+        {
+            if (levelFilter == LevelFilterMode.Verbose)
+                return true;
+            if (!string.IsNullOrEmpty(inEntry.level))
+            {
+                switch (inEntry.level.Trim().ToLower())
+                {
+                    case "d":
+                        return levelFilter.HasFlag(LevelFilterMode.Debug);
+                    case "i":
+                        return levelFilter.HasFlag(LevelFilterMode.Info);
+                    case "w":
+                        return levelFilter.HasFlag(LevelFilterMode.Warning);
+                    case "e":
+                        return levelFilter.HasFlag(LevelFilterMode.Error);
+                    case "a":
+                        return levelFilter.HasFlag(LevelFilterMode.Assert);
+                }
+            }
 
-		// Lots of individual scroll calls will be lost in the chop
-		// so count them up and apply in one shot where possible
-		void Scroll( ListBox inBox, int howManyLines = 1 ){
+            return false;
+        }
+
+
+        // Lots of individual scroll calls will be lost in the chop
+        // so count them up and apply in one shot where possible
+        void Scroll( ListBox inBox, int howManyLines = 1 ){
 
 			if ( howManyLines == 0 ) return;
 
@@ -929,9 +979,91 @@ namespace LessShittyLogcat {
 
 		}
 
+        private void CbVerbose_Checked(object sender, RoutedEventArgs e)
+        {
+            levelFilter = (LevelFilterMode.Debug | LevelFilterMode.Info | LevelFilterMode.Warning |
+                           LevelFilterMode.Error | LevelFilterMode.Assert);
+            OnLogLevelTypeClicked(levelFilter);
+        }
+        private void CbDebug_Click(object sender, RoutedEventArgs e)
+        {
+            OnLogLevelTypeClicked(LevelFilterMode.Debug);
+        }
 
+        private void CbInfo_Click(object sender, RoutedEventArgs e)
+        {
+            OnLogLevelTypeClicked(LevelFilterMode.Info);
+        }
 
-	}
+        private void CbWarning_Click(object sender, RoutedEventArgs e)
+        {
+            OnLogLevelTypeClicked(LevelFilterMode.Warning);
+        }
+
+        private void CbError_Click(object sender, RoutedEventArgs e)
+        {
+            OnLogLevelTypeClicked(LevelFilterMode.Error);
+        }
+
+        private void CbAssert_Click(object sender, RoutedEventArgs e)
+        {
+            OnLogLevelTypeClicked(LevelFilterMode.Assert);
+        }
+
+        private void OnLogLevelTypeClicked(LevelFilterMode mode)
+        {
+            CheckBox checkbox = null;
+            switch (mode)
+            {
+                case LevelFilterMode.Debug:
+                    checkbox = cbDebug;
+                    break;
+                case LevelFilterMode.Info:
+                    checkbox = cbInfo;
+                    break;
+                case LevelFilterMode.Warning:
+                    checkbox = cbWarning;
+                    break;
+                case LevelFilterMode.Error:
+                    checkbox = cbError;
+                    break;
+                case LevelFilterMode.Assert:
+                    checkbox = cbAssert;
+                    break;
+            }
+
+            bool verbose = (levelFilter == LevelFilterMode.Verbose);
+
+            if (mode != LevelFilterMode.Verbose)
+            {
+                if (checkbox != null)
+                {
+                    if (checkbox.IsChecked ?? false)
+                    {
+                        if (!verbose)
+                            levelFilter |= mode;
+                        else
+                            levelFilter = mode;
+                    }
+                    else
+                    {
+                        levelFilter &= ~mode;
+                    }
+                }
+            }
+
+            verbose = (levelFilter == LevelFilterMode.Verbose);
+            cbVerbose.IsChecked = verbose;
+            cbDebug.IsChecked = !verbose && levelFilter.HasFlag(LevelFilterMode.Debug);
+            cbInfo.IsChecked = !verbose && levelFilter.HasFlag(LevelFilterMode.Info);
+            cbWarning.IsChecked = !verbose && levelFilter.HasFlag(LevelFilterMode.Warning);
+            cbError.IsChecked = !verbose && levelFilter.HasFlag(LevelFilterMode.Error);
+            cbAssert.IsChecked = !verbose && levelFilter.HasFlag(LevelFilterMode.Assert);
+
+            UpdateFilters(null, null);
+        }
+
+    }
 
 
 }
