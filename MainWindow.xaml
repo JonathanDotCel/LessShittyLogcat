@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LessShittyLogcat"
         mc:Ignorable="d"
-        Title="Less Shitty Logcat" Height="509.233" Width="963.47">
+        Title="Less Shitty Logcat" Height="609.233" Width="963.47">
 	<Grid x:Name="rowgrid" RenderTransformOrigin="0.291,0.473" Margin="0">
 		<Grid.RowDefinitions>
 			<RowDefinition x:Name="TopRow" Height="31"/>
@@ -133,7 +133,17 @@
 			<TextBox x:Name="txtFilter1" TextWrapping="Wrap" Text="unity" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,86,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Height="24" TabIndex="1" TextChanged="Filterboxes_TextChanged" />
 			<TextBox x:Name="txtExclude1" TextWrapping="Wrap" Text="[SurfaceView]" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,285,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Height="24" TabIndex="10" TextChanged="Filterboxes_TextChanged"/>
 			<TextBox x:Name="txtExclude2" TextWrapping="Wrap" Text="unity" KeyUp="txtFilter_KeyUp" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="20,321,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="120" Height="24" TabIndex="11" TextChanged="Filterboxes_TextChanged"/>
-		</Grid>
+            <GroupBox HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,357,0,0"  Width="140" Height="110" Padding="0,5,0,0" >
+                <StackPanel>
+                    <CheckBox x:Name="cbVerbose" Checked="CbVerbose_Checked">Verbose</CheckBox>
+                    <CheckBox x:Name="cbDebug" Click="CbDebug_Click">Debug</CheckBox>
+                    <CheckBox x:Name="cbInfo" Click="CbInfo_Click">Info</CheckBox>
+                    <CheckBox x:Name="cbWarning" Click="CbWarning_Click">Warning</CheckBox>
+                    <CheckBox x:Name="cbError" Click="CbError_Click">Error</CheckBox>
+                    <CheckBox x:Name="cbAssert" Click="CbAssert_Click">Assert</CheckBox>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
 		<CheckBox x:Name="cbScroll" Content="AutoScroll" Margin="296,9,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.416,0.596" Height="15" IsChecked="True" HorizontalAlignment="Left" Width="75" Checked="cbScroll_Checked" TabIndex="14"/>
 		<Button x:Name="btnDeviceClear" Content="Wipe logs on device" Margin="0,6,10,0" VerticalAlignment="Top" Click="BTNDeviceClear_Click" Height="20" HorizontalAlignment="Right" Width="124"/>
 		<Label x:Name="lblBuffer" Content="Unfiltered buffer: 0, Filtered buffer: 0" HorizontalAlignment="Right" Margin="0,0,171,4" Grid.Row="1" VerticalAlignment="Bottom" Width="397" FlowDirection="RightToLeft" Height="26" Grid.RowSpan="2"/>
